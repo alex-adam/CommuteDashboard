@@ -26,6 +26,9 @@ def load_route_config() -> dict[str, Any]:
             raise ValueError(f"config/routes.json must include '{field}'.")
     if not isinstance(config["routes"], list):
         raise ValueError("config/routes.json 'routes' must be an array.")
+    for index, route in enumerate(config["routes"], start=1):
+        if isinstance(route, dict) and not isinstance(route.get("return_waypoints", []), list):
+            raise ValueError(f"config/routes.json route {index} 'return_waypoints' must be an array.")
     return config
 
 
@@ -46,24 +49,31 @@ def normalize_route(route_config: dict[str, Any], google_route: dict[str, Any]) 
     }
 
 
-def update_routes() -> dict[str, Any]:
+def update_routes(direction: str = "outbound") -> dict[str, Any]:
+    if direction not in ("outbound", "return"):
+        raise ValueError("Direction must be 'outbound' or 'return'.")
+
     config = load_route_config()
     api_key = load_api_key(CREDENTIAL_PATH)
-    definitions = [
-        {
+    origin = config["origin"] if direction == "outbound" else config["destination"]
+    destination = config["destination"] if direction == "outbound" else config["origin"]
+    definitions = []
+    for index, item in enumerate(config["routes"]):
+        waypoints = item.get("waypoints", [])
+        if direction == "return":
+            waypoints = list(reversed(waypoints)) + item.get("return_waypoints", [])
+        definitions.append({
             "id": item.get("id", f"route-{index + 1}"),
             "name": item.get("name") or item.get("description") or f"Route {index + 1}",
-            "waypoints": item.get("waypoints", []),
-        }
-        for index, item in enumerate(config["routes"])
-    ]
+            "waypoints": waypoints,
+        })
     if config.get("google_route", False):
         definitions.append({"id": "google-recommended", "name": "Google recommended", "waypoints": [], "recommended": True})
 
     results = []
     for definition in definitions:
         try:
-            result = compute_route(api_key, config["origin"], config["destination"], definition["waypoints"])
+            result = compute_route(api_key, origin, destination, definition["waypoints"])
             normalized = normalize_route(definition, result)
             normalized["recommended"] = definition.get("recommended", False)
             results.append(normalized)
@@ -94,4 +104,10 @@ def update_routes() -> dict[str, Any]:
         ordered[-2]["highlight"] = "second-slowest"
 
     fastest_id = ordered[0]["id"] if ordered else None
-    return {"routes": results, "fastest_route_id": fastest_id}
+    direction_label = "Origin → destination" if direction == "outbound" else "Destination → origin"
+    return {
+        "routes": results,
+        "fastest_route_id": fastest_id,
+        "direction": direction,
+        "direction_label": direction_label,
+    }

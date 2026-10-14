@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dotenv import load_dotenv
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory
 
 from .routes import update_routes
 
@@ -19,7 +19,12 @@ def create_app() -> Flask:
     @app.post("/api/update")
     def update():
         try:
-            return jsonify(update_routes())
+            payload = request.get_json(silent=True)
+            if payload is None:
+                payload = {}
+            if not isinstance(payload, dict):
+                raise ValueError("Request body must be a JSON object.")
+            return jsonify(update_routes(payload.get("direction", "outbound")))
         except ValueError as error:
             return jsonify({"error": str(error)}), 400
         except OSError as error:

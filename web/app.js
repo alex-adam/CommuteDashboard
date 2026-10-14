@@ -2,6 +2,8 @@ const button = document.querySelector('#update-button');
 const routesElement = document.querySelector('#routes');
 const statusElement = document.querySelector('#status');
 const updatedElement = document.querySelector('#updated-at');
+const directionLabel = document.querySelector('#direction-label');
+const directionButtons = [...document.querySelectorAll('.direction-button')];
 const template = document.querySelector('#route-template');
 const mapCanvas = document.querySelector('#route-map');
 const mapNotice = document.querySelector('#map-notice');
@@ -180,12 +182,26 @@ function renderRoutes(routes) {
   });
 }
 
-button.addEventListener('click', async () => {
+let currentDirection = 'outbound';
+
+async function updateRoutes(direction = currentDirection) {
+  currentDirection = direction;
+  directionButtons.forEach((directionButton) => {
+    directionButton.setAttribute('aria-pressed', String(directionButton.dataset.direction === direction));
+    directionButton.disabled = true;
+  });
   button.disabled = true;
   button.textContent = 'Updating…';
-  statusElement.textContent = 'Fetching live traffic routes…';
+  directionLabel.textContent = `${direction === 'outbound' ? 'Outbound' : 'Return'} · ${direction === 'outbound' ? 'Origin → destination' : 'Destination → origin'}`;
+  statusElement.textContent = `Fetching live traffic routes for the ${direction} direction…`;
+  routesElement.replaceChildren();
+  renderMap([]);
   try {
-    const response = await fetch('/api/update', { method: 'POST' });
+    const response = await fetch('/api/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ direction }),
+    });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Unable to update routes.');
     renderRoutes(data.routes);
@@ -199,5 +215,13 @@ button.addEventListener('click', async () => {
   } finally {
     button.disabled = false;
     button.textContent = 'Update Routes';
+    directionButtons.forEach((directionButton) => { directionButton.disabled = false; });
   }
+}
+
+button.addEventListener('click', () => updateRoutes());
+directionButtons.forEach((directionButton) => {
+  directionButton.addEventListener('click', () => {
+    if (directionButton.dataset.direction !== currentDirection) updateRoutes(directionButton.dataset.direction);
+  });
 });

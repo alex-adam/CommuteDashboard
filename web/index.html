@@ -19,8 +19,17 @@
       <p id="status" class="status" role="status" aria-live="polite"></p>
       <section class="map-panel" aria-labelledby="map-heading">
         <div class="map-heading">
-          <h2 id="map-heading">Route map</h2>
-          <div id="map-legend" class="map-legend"></div>
+          <div>
+            <h2 id="map-heading">Route map</h2>
+            <p id="direction-label" class="direction-label">Outbound · Origin → destination</p>
+          </div>
+          <div class="map-controls">
+            <div class="direction-control" role="group" aria-label="Route direction">
+              <button class="direction-button" type="button" data-direction="outbound" aria-pressed="true">Outbound</button>
+              <button class="direction-button" type="button" data-direction="return" aria-pressed="false">Return</button>
+            </div>
+            <div id="map-legend" class="map-legend"></div>
+          </div>
         </div>
         <div class="map-frame">
           <canvas
