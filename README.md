@@ -123,16 +123,23 @@ Each route can contain its own name and a series of waypoints.
     "40.76809707593553, -73.98202256534707",
     "40.70484526765263, -74.01369650511622"
   ]
+  "return_waypoints": ["", ""]
 }
 ```
 
-You can define as many routes as needed.
+You can define as many routes as needed (3 are optimal).
 
 ### Waypoints
 
 Waypoints determine the roads or areas a predefined route should pass through.
 
 Add as many waypoints as necessary to describe your preferred route.
+
+#### Return route and Waypoints
+When using the return route function, it uses the regular waypoints by default. Depending on the route it is necessary to modify those (one-way streets, roundabouts etc.). Use the additional parameter:
+```
+"return_waypoints": ["", ""]
+```
 
 ### Google Route
 

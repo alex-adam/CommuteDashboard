@@ -11,7 +11,8 @@
     {
       "id": "route3",
       "description": "",
-      "waypoints": ["", ""]
+      "waypoints": ["", ""],
+      "return_waypoints": ["", ""]
     }
   ],
   "google_route": false
