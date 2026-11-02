@@ -77,7 +77,9 @@ See [Adapting to Your Use Case](#adapting-to-your-use-case) for details.
 
 ### 5. Start the App
 
-Start the Flask server:
+On macOS, you can double-click `Start CommuteDashboard.command` in Finder to activate the project's `.env` environment, start the Flask server, and open the dashboard in your browser. Keep the Terminal window open while using the app; press **Control-C** in that window to stop the server.
+
+To start the app manually on any platform, run:
 
 ```bash
 python -m app.server
